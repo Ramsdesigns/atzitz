@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' https: data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.open-meteo.com https://geocoding-api.open-meteo.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<title>עציץ</title>
+<meta name="description" content="מזהה את הצמחים שלך, מלמד איך לגדל אותם ומזכיר מתי להשקות.">
+<meta name="theme-color" content="#f5efe3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151c17" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/48.png">
+<link rel="apple-touch-icon" href="icons/180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="עציץ">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 3.2c3.6 4.3 6 7.7 6 10.9a6 6 0 0 1-12 0c0-3.2 2.4-6.6 6-10.9z"/><path d="M9 14.5a3 3 0 0 0 3 3"/></symbol>
+  <symbol id="i-fertilize" viewBox="0 0 24 24"><path d="M12 21v-9"/><path d="M12 12c0-4 3-6.5 7.5-6.5 0 4.5-3 6.5-7.5 6.5z"/><path d="M12 15c0-3-2.3-5-6-5 0 3.4 2.3 5 6 5z"/><path d="M7 21h10"/></symbol>
+  <symbol id="i-mist" viewBox="0 0 24 24"><path d="M9 9.5h5v11H9z"/><path d="M10 9.5V7h3v2.5M13 7h3.5v-2H10"/><path d="M19 4.5h.01M20.5 7h.01M19 9.5h.01"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4v4.5H15"/></symbol>
+  <symbol id="i-repot" viewBox="0 0 24 24"><path d="M5 11.5h14l-1.6 9h-10.8z"/><path d="M4 11.5h16"/><path d="M12 11.5V7M12 7c0-2.2 1.6-3.5 4-3.5 0 2.3-1.6 3.5-4 3.5zM12 8.5c0-1.8-1.3-3-3.5-3 0 1.9 1.3 3 3.5 3z"/></symbol>
+  <symbol id="i-shade" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-inside" viewBox="0 0 24 24"><path d="M12 2.5v19M4 7l16 10M4 17 20 7"/><path d="m9.5 3.5 2.5 2 2.5-2M9.5 20.5l2.5-2 2.5 2"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></symbol>
+  <symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 15.5a4.5 4.5 0 0 1-.4-9A5.5 5.5 0 0 1 17 7.5a4 4 0 0 1 .5 8H7z"/><path d="M8.5 18.5l-1 2M12.5 18.5l-1 2M16.5 18.5l-1 2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5a2 2 0 0 1 2-2h2.3l1.5-2h5.4l1.5 2h2.3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.8"/></symbol>
+  <symbol id="i-today" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="m9 14.5 2 2 4-4"/></symbol>
+  <symbol id="i-plants" viewBox="0 0 24 24"><path d="M6 13.5h12l-1.4 7h-9.2z"/><path d="M12 13.5V9"/><path d="M12 9c0-3 2.2-5 5.5-5 0 3.2-2.2 5-5.5 5zM12 10.5C12 8 10.2 6.3 7 6.3c0 2.7 1.8 4.2 5 4.2z"/></symbol>
+  <symbol id="i-learn" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7.3 4.5 3.5 4.5v14c3.8 0 6.5.5 8.5 2 2-1.5 4.7-2 8.5-2v-14c-3.8 0-6.5.5-8.5 2z"/><path d="M12 6.5v14"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1h-.2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5v-.2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6.5 9.2 17.3 4 12.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-soil" viewBox="0 0 24 24"><path d="M3.5 14.5c2-1.5 4-1.5 6 0s4 1.5 6 0 3.5-1.2 5 0"/><path d="M3.5 18.5c2-1.5 4-1.5 6 0s4 1.5 6 0 3.5-1.2 5 0"/><path d="M12 11V4.5M12 7c1-1.6 2.5-2.3 4.5-2.2-.2 2-1.7 3-4.5 3"/></symbol>
+  <symbol id="i-temp" viewBox="0 0 24 24"><path d="M10 14.2V5a2 2 0 1 1 4 0v9.2a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></symbol>
+  <symbol id="i-humid" viewBox="0 0 24 24"><path d="M8 3.5c2.3 2.8 3.8 5 3.8 7a3.8 3.8 0 0 1-7.6 0c0-2 1.5-4.2 3.8-7zM16.5 10c1.8 2.1 3 3.8 3 5.4a3 3 0 0 1-6 0c0-1.6 1.2-3.3 3-5.4z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11 12 3.5l8.5 7.5"/><path d="M5.5 9.5v11h13v-11"/></symbol>
+  <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8 20 18M8 16 20 6"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="7" cy="9" r="1.8"/><circle cx="17" cy="9" r="1.8"/><circle cx="10" cy="5.5" r="1.6"/><circle cx="14" cy="5.5" r="1.6"/><path d="M12 12c-3 0-5.5 3.6-5.5 5.8 0 1.8 1.6 2.2 3 1.9 1-.2 1.6-.6 2.5-.6s1.5.4 2.5.6c1.4.3 3-.1 3-1.9C17.5 15.6 15 12 12 12z"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7.5" y="7.5" width="9" height="13" rx="4.5"/><path d="M12 7.5v13M9.5 7.5a2.5 2.5 0 0 1 5 0M7.5 12H4M20 12h-3.5M7.5 16.5l-3 1.5M16.5 16.5l3 1.5M7.8 9.5 5 7.5M16.2 9.5 19 7.5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 20.5v-8"/><path d="M12 12.5c0-4 2.7-6.5 7-6.5 0 4.3-2.7 6.5-7 6.5zM12 14.5C12 11 9.8 9 6 9c0 3.6 2.2 5.5 6 5.5z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.4 7.6L3.5 20.5l1.4-4.4A8.5 8.5 0 1 1 20.5 11.5z"/></symbol>
+  <symbol id="i-stethoscope" viewBox="0 0 24 24"><path d="M6 3.5H5a1.5 1.5 0 0 0-1.5 1.5v4a5 5 0 0 0 10 0V5A1.5 1.5 0 0 0 12 3.5h-1"/><path d="M8.5 14v1.5a5 5 0 0 0 10 0V13"/><circle cx="18.5" cy="11" r="2"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="9.5" r="1.8"/><path d="m20.5 15.5-5-5-9 9"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3.5 6.5h17M9 6.5v-3h6v3M5.5 6.5l1 14h11l1-14"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4.5h11.5a2 2 0 0 1 2 2V20.5H7a2 2 0 0 1-2-2z"/><path d="M5 18.5a2 2 0 0 1 2-2h11.5"/></symbol>
+  <symbol id="i-snooze" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M4 4.5l3 -1.5M20 4.5l-3-1.5"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12v7a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-7"/></symbol>
+</svg>
+
+<div id="app" class="app" aria-live="polite"></div>
+
+<nav class="tabbar" id="tabbar" hidden>
+  <a href="#today" data-tab="today"><svg><use href="#i-today"/></svg><span>היום</span></a>
+  <a href="#plants" data-tab="plants"><svg><use href="#i-plants"/></svg><span>הצמחים</span></a>
+  <a href="#add" class="fab" data-tab="add" aria-label="צילום צמח חדש"><svg><use href="#i-camera"/></svg></a>
+  <a href="#learn" data-tab="learn"><svg><use href="#i-learn"/></svg><span>לומדים</span></a>
+  <a href="#settings" data-tab="settings"><svg><use href="#i-settings"/></svg><span>הגדרות</span></a>
+</nav>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="camera" accept="image/*" capture="environment" hidden>
+<input type="file" id="gallery" accept="image/*" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
