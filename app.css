@@ -436,3 +436,33 @@ ul.tips li { margin-bottom: 8px; }
 .empty ~ .push-card .x { position: absolute; inset-inline-end: 0; top: 10px; }
 .push-card { position: relative; }
 .actions button.ok { background: var(--green-soft); color: var(--green); }
+
+/* ---------- מזג אוויר ---------- */
+.wx-line .more { margin-top: 6px; font-size: 13.5px; font-weight: 600; color: var(--green); }
+.wx-now { text-align: center; padding: 6px 0 24px; border-bottom: 1px solid var(--line); }
+.wx-now .temp { font: 700 76px/1 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.wx-now .cond { font: 500 20px/1.3 var(--display); color: var(--ink-2); margin-top: 6px; }
+.wx-now .facts { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 0; margin-top: 14px; font-size: 14px; color: var(--ink-3); }
+.wx-now .facts span + span::before { content: "·"; margin: 0 10px; }
+.wx-now .facts b { color: var(--ink); font-weight: 600; }
+.plan { border-top: 1px solid var(--line); }
+.plan-day { padding: 16px 0 6px; border-bottom: 1px solid var(--line); }
+.plan-day h3 { font: 700 18px/1.3 var(--display); margin-bottom: 6px; }
+.advice { padding: 6px 0 10px; }
+.advice p { margin: 0; font-weight: 600; font-size: 15px; line-height: 1.45; }
+.advice span { font-size: 14px; color: var(--ink-3); }
+.advice.k-shade p, .advice.k-uv p, .advice.k-window p { color: var(--sun); }
+.advice.k-inside p, .advice.k-wind p, .advice.k-rain-dry p { color: var(--terra); }
+.advice.k-rain p { color: var(--water); }
+.advice.k-out p, .advice.k-out-rain p { color: var(--green); }
+.forecast { border-block: 1px solid var(--line); }
+.fday { display: grid; grid-template-columns: 76px 1fr minmax(120px, 44%); align-items: center; gap: 10px; padding: 13px 0; font-size: 15px; }
+.fday + .fday { border-top: 1px solid var(--line-2); }
+.fday .dn { font-weight: 600; }
+.fday .dc { color: var(--ink-2); font-size: 14px; }
+.fday .rp { color: var(--water); font-weight: 600; font-size: 13px; }
+.fday .tr { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.fday .lo { color: var(--ink-3); width: 30px; text-align: start; }
+.fday .hi { font-weight: 600; width: 30px; text-align: end; }
+.fday .bar { flex: 1; height: 4px; border-radius: 4px; background: var(--bg-2); position: relative; }
+.fday .bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--sun); }

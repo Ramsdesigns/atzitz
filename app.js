@@ -1,7 +1,7 @@
 // app.js — עציץ. נתב לפי hash, מסכים כפונקציות שמחזירות HTML ומחברות אירועים.
 import * as cloud from "./lib/cloud.js";
 import * as data from "./lib/data.js";
-import { plantTasks, todayTasks, waterInterval, weatherFactor, careParams, KIND, waterStatus, formatMl, ymd, isSummer, DAY } from "./lib/care.js";
+import { plantTasks, todayTasks, waterInterval, weatherFactor, careParams, KIND, waterStatus, formatMl, ymd, isSummer, DAY, forecastDays, dayAdvice, wxText } from "./lib/care.js";
 import { esc, icon, $, $$, paras, toast, sheet, confirmSheet, shrink, pickImage, fallbackImg, ago, fmtDate, isIOS, isStandalone } from "./lib/ui.js";
 import { CONFIG } from "./lib/config.js";
 
@@ -43,9 +43,9 @@ function replacePlant(p) { S.plants = S.plants.map(x => (x.id === p.id ? p : x))
 const ROUTES = {
   today: screenToday, plants: screenPlants, plant: screenPlant, add: screenAdd, edit: screenEdit,
   learn: screenLearn, lesson: screenLesson, tips: screenTips, diagnose: screenDiagnose, ask: screenAsk,
-  library: screenLibrary, species: screenSpecies, settings: screenSettings,
+  library: screenLibrary, species: screenSpecies, settings: screenSettings, weather: screenWeather,
 };
-const NO_TABS = new Set(["plant", "lesson", "ask", "species", "edit"]);
+const NO_TABS = new Set(["plant", "lesson", "ask", "species", "edit", "weather"]);
 
 async function render() {
   const [name, ...args] = (location.hash.slice(1) || "today").split("/").map(decodeURIComponent);
@@ -98,7 +98,7 @@ function weatherCard() {
   const w = S.wx;
   if (!w?.today) {
     return S.profile?.lat == null
-      ? `<a class="wx-line" href="#settings"><span class="desc"><b>איפה את גרה?</b>עם המיקום, ההשקיה מתאימה את עצמה לחום ולגשם</span></a>`
+      ? `<a class="wx-line" href="#weather"><span class="desc"><b>איפה הצמחים גרים?</b>עם המיקום אקבל תחזית, ואגיד מתי להכניס, להוציא או להעביר לצל</span><span class="more">להפעלת מיקום ‹</span></a>`
       : "";
   }
   let note = "מזג אוויר רגיל, הכל לפי התוכנית";
@@ -107,8 +107,11 @@ function weatherCard() {
   else if (w.rainRecentMm >= 6) note = "ירד גשם, וצמחי מרפסת חשופים קיבלו מים";
   else if (w.tmaxRecent <= 16) note = "קריר. הצמחים שותים פחות, המרווחים ארוכים יותר";
   const ic = w.today.rain > 1 ? "rain" : "sun";
-  return `<div class="wx-line ${w.sharav || w.tmaxRecent >= 31 ? "hot" : ""}"><span class="temp">${Math.round(w.today.tmax)}°</span>
-    <span class="desc"><b>${esc(S.profile.city || "")}${ic === "rain" ? ", גשם" : ""} · <span class="num">${Math.round(w.today.tmin)}°–${Math.round(w.today.tmax)}°</span></b>${esc(note)}</span></div>`;
+  const cur = w.raw?.current?.temperature_2m;
+  const plan = S.plants.length ? weekPlan(forecastDays(w.raw)) : [];
+  const todo = plan.reduce((n, g) => n + g.length, 0);
+  return `<a class="wx-line ${w.sharav || w.tmaxRecent >= 31 ? "hot" : ""}" href="#weather"><span class="temp">${Math.round(cur ?? w.today.tmax)}°</span>
+    <span class="desc"><b>${esc(S.profile.city || "")}${ic === "rain" ? ", גשם" : ""} · <span class="num">${Math.round(w.today.tmin)}°–${Math.round(w.today.tmax)}°</span></b>${esc(note)}</span><span class="more">${todo ? `${todo === 1 ? "המלצה אחת" : todo + " המלצות"} לשבוע · ` : ""}לתחזית ‹</span></a>`;
 }
 function pushPrompt() {
   if (localStorage.getItem("atzitz-push-dismissed")) return "";
@@ -886,6 +889,92 @@ async function screenAsk(plantId) {
   };
 }
 
+// ---------- מזג אוויר: עכשיו, מה לעשות השבוע, תחזית ----------
+/** מיקום מהטלפון → שם יישוב → שמירה בפרופיל ורענון מזג האוויר */
+function locate() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error("הדפדפן לא תומך במיקום"));
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const lat = Math.round(pos.coords.latitude * 100) / 100, lon = Math.round(pos.coords.longitude * 100) / 100;
+        const city = (await data.placeName(lat, lon)) || S.profile.city || "המיקום שלי";
+        S.profile = await cloud.saveProfile({ lat, lon, city });
+        S.wx = await data.weather(lat, lon);
+        res(city);
+      } catch (e) { rej(e); }
+    }, () => rej(new Error("אין גישה למיקום. אפשר לאשר בהגדרות הטלפון, או לכתוב עיר בהגדרות")), { timeout: 15000, maximumAge: 6e5 });
+  });
+}
+const dayName = (iso, i) => i === 0 ? "היום" : i === 1 ? "מחר"
+  : new Intl.DateTimeFormat("he-IL", { weekday: "long", timeZone: "Asia/Jerusalem" }).format(new Date(iso + "T12:00:00"));
+
+/** כל ההמלצות לשבוע: לכל יום — קבוצות של {text, plants[]} */
+function weekPlan(days) {
+  const outed = new Set();
+  return days.map(day => {
+    const groups = new Map();
+    for (const p of S.plants) {
+      for (const a of dayAdvice(sp(p), p, day, { outing: outed.has(p.id) })) {
+        if (a.key.startsWith("out")) outed.add(p.id);
+        if (!groups.has(a.text)) groups.set(a.text, { key: a.key, text: a.text, plants: [] });
+        groups.get(a.text).plants.push(p);
+      }
+    }
+    return [...groups.values()];
+  });
+}
+
+async function screenWeather() {
+  const pr = S.profile;
+  if (pr?.lat == null) {
+    app.innerHTML = `${head("מזג האוויר", { back: "#today" })}
+      <div class="empty"><h2>איפה הצמחים גרים?</h2><p>עם המיקום אדע מתי חם מדי, מתי קר בלילה ומתי יורד גשם, ואגיד מה לעשות עם כל צמח.</p>
+      <button class="btn" id="loc">להשתמש במיקום שלי</button><p style="margin-top:16px"><a href="#settings">או לכתוב עיר בהגדרות</a></p></div>`;
+    $("#loc").onclick = async e => {
+      e.target.disabled = true; e.target.textContent = "מאתרת...";
+      try { await locate(); screenWeather(); } catch (err) { toast(err.message); e.target.disabled = false; e.target.textContent = "להשתמש במיקום שלי"; }
+    };
+    return;
+  }
+  if (!S.wx?.raw) { app.innerHTML = loading("מביאה תחזית"); S.wx = await data.weather(pr.lat, pr.lon); }
+  const raw = S.wx?.raw;
+  if (!raw) { app.innerHTML = `${head("מזג האוויר", { back: "#today" })}<p class="muted" style="text-align:center">לא הצלחתי להביא תחזית כרגע. אפשר לנסות שוב עוד מעט.</p>`; return; }
+  const now = raw.current ?? {};
+  const days = forecastDays(raw);
+  const plan = weekPlan(days);
+  const lo = Math.min(...days.map(d => d.tmin)), hi = Math.max(...days.map(d => d.tmax));
+  const pos = t => ((t - lo) / Math.max(1, hi - lo)) * 100;
+  const names = ps => ps.map(p => esc(plantName(p))).join(", ");
+  const anyPlan = plan.some(g => g.length);
+
+  app.innerHTML = `${head("מזג האוויר", { back: "#today", sub: pr.city || "" })}
+    <div class="wx-now">
+      <div class="temp">${now.temperature_2m != null ? Math.round(now.temperature_2m) + "°" : "–"}</div>
+      <div class="cond">${esc(wxText(now.weather_code))}${now.is_day === 0 ? " · לילה" : ""}</div>
+      <div class="facts">
+        ${now.apparent_temperature != null ? `<span>מרגיש כמו <b class="num">${Math.round(now.apparent_temperature)}°</b></span>` : ""}
+        ${now.relative_humidity_2m != null ? `<span>לחות <b class="num">${Math.round(now.relative_humidity_2m)}%</b></span>` : ""}
+        ${now.wind_speed_10m != null ? `<span>רוח <b class="num">${Math.round(now.wind_speed_10m)}</b> קמ״ש</span>` : ""}
+      </div>
+    </div>
+    <div class="section-title"><h2>מה לעשות השבוע</h2>${S.plants.length ? `<span class="aside">לפי הצמחים שלך והמקום של כל אחד</span>` : ""}</div>
+    ${!S.plants.length ? `<p class="muted" style="text-align:center">כשיהיו צמחים, כאן יופיעו המלצות לפי התחזית.</p>`
+      : anyPlan ? `<div class="plan">${plan.map((g, i) => g.length ? `<div class="plan-day"><h3>${esc(dayName(days[i].date, i))}</h3>
+          ${g.map(x => `<div class="advice k-${x.key}"><p>${esc(x.text)}</p><span>${names(x.plants)}</span></div>`).join("")}</div>` : "").join("")}</div>`
+      : `<div class="all-done"><b>שבוע רגוע</b><div class="small muted">אין מה להזיז השבוע. ממשיכים כרגיל.</div></div>`}
+    <div class="section-title"><h2>תחזית ל-7 ימים</h2></div>
+    <div class="forecast">${days.map((d, i) => `<div class="fday">
+      <span class="dn">${esc(dayName(d.date, i))}</span>
+      <span class="dc">${esc(wxText(d.code))}${d.rainProb >= 30 ? ` <span class="rp num">${Math.round(d.rainProb)}%</span>` : ""}</span>
+      <span class="tr num"><span class="lo">${Math.round(d.tmin)}°</span><span class="bar"><i style="inset-inline-start:${pos(d.tmin)}%;inset-inline-end:${100 - pos(d.tmax)}%"></i></span><span class="hi">${Math.round(d.tmax)}°</span></span>
+    </div>`).join("")}</div>
+    <div style="text-align:center;margin-top:26px"><button class="link-btn" id="loc">לעדכן לפי המיקום שלי עכשיו</button></div>`;
+  $("#loc").onclick = async e => {
+    e.target.textContent = "מאתרת...";
+    try { const c = await locate(); toast("המיקום עודכן: " + c); screenWeather(); } catch (err) { toast(err.message); e.target.textContent = "לעדכן לפי המיקום שלי עכשיו"; }
+  };
+}
+
 // ---------- הגדרות ----------
 async function screenSettings() {
   const pr = S.profile;
@@ -936,12 +1025,9 @@ async function screenSettings() {
       }));
     }, 350);
   };
-  $("#gps").onclick = () => navigator.geolocation?.getCurrentPosition(async pos => {
-    const { latitude: lat, longitude: lon } = pos.coords;
-    await save({ lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, city: S.profile.city || "המיקום שלי" });
-    S.wx = await data.weather(S.profile.lat, S.profile.lon);
-    screenSettings();
-  }, () => toast("אין גישה למיקום. אפשר לכתוב עיר"));
+  $("#gps").onclick = async () => {
+    try { const c = await locate(); toast("המיקום עודכן: " + c); screenSettings(); } catch (e) { toast(e.message); }
+  };
   $("#push")?.addEventListener("change", async e => {
     try {
       if (e.target.checked) { await cloud.enablePush(); toast("ההתראות הופעלו"); }
