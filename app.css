@@ -444,10 +444,15 @@ a.card.menu-item { padding: 15px 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* כניסה */
-.login { min-height: 90dvh; display: flex; flex-direction: column; justify-content: center; }
-.login .logo { width: 72px; height: 72px; border-radius: 20px; margin-bottom: 26px; }
+/* כניסה: הכל ממורכז בעמודה צרה, גם בטלפון וגם במסך רחב */
+.login { min-height: 90dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.login .logo { width: 76px; height: 76px; border-radius: 22px; margin: 0 auto 24px; }
 .login h1 { font-size: 42px; margin-bottom: 10px; }
-.login p.lead { color: var(--ink-2); font-size: 17px; margin-bottom: 30px; max-width: 30ch; }
+.login p.lead { color: var(--ink-2); font-size: 17px; margin: 0 auto 32px; max-width: 28ch; }
+.login form { width: 100%; max-width: 380px; }
+.login .field > span { text-align: center; }
+.login .field input { text-align: center; }
+.login .warn { justify-content: center; text-align: center; }
 
 .install-hint { display: flex; gap: 12px; align-items: flex-start; }
 .install-hint > svg { color: var(--green-2); margin-top: 2px; }
