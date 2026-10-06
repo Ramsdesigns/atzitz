@@ -356,13 +356,16 @@ ul.tips li { margin-bottom: 8px; }
 .composer { position: sticky; bottom: calc(var(--safe-b) + 10px); display: flex; gap: 8px; align-items: center; background: var(--bg); padding-top: 8px; }
 .composer input { flex: 1; }
 
-/* ---------- סרגל תחתון: מילים בלבד ---------- */
-.tabbar { position: fixed; bottom: 0; inset-inline: 0; z-index: 20; display: flex; justify-content: space-around; align-items: center; height: calc(var(--tabbar-h) + var(--safe-b)); padding: 0 8px var(--safe-b); background: var(--bg); border-top: 1px solid var(--line); }
-.tabbar a { flex: 1; display: flex; justify-content: center; align-items: center; text-decoration: none; color: var(--ink-3); font-size: 14.5px; font-weight: 500; height: 100%; position: relative; max-width: 96px; }
-.tabbar a[aria-current="page"] { color: var(--ink); font-weight: 700; }
-.tabbar a[aria-current="page"]::after { content: ""; position: absolute; bottom: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
-.tabbar .fab { flex: none; height: 42px; padding: 0 20px; border-radius: 99px; background: var(--terra); color: var(--on-accent) !important; font-weight: 700; max-width: none; }
-.tabbar .fab::after { display: none; }
+/* ---------- סרגל תחתון: אייקון + מילה, מצלמה עגולה באמצע (בלי זוהר) ---------- */
+:root { --tabbar-h: 68px; }
+.tabbar { position: fixed; bottom: 0; inset-inline: 0; z-index: 20; display: flex; justify-content: space-around; align-items: center; height: calc(var(--tabbar-h) + var(--safe-b)); padding: 0 6px var(--safe-b); background: color-mix(in srgb, var(--card) 90%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); border-top: 1px solid var(--line); }
+.tabbar a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--ink-3); font-size: 11.5px; font-weight: 500; padding: 6px 0; max-width: 90px; }
+.tabbar svg { width: 23px; height: 23px; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar a[aria-current="page"] { color: var(--green); font-weight: 600; }
+.tabbar a[aria-current="page"] svg { stroke-width: 2.1; }
+.tabbar .fab { flex: none; width: 62px; height: 62px; border-radius: 50%; background: var(--terra); color: var(--on-accent); justify-content: center; margin-top: -26px; border: 4px solid var(--bg); max-width: none; transition: transform .15s var(--ease); }
+.tabbar .fab:active { transform: scale(.94); }
+.tabbar .fab svg { width: 28px; height: 28px; }
 
 .toast { position: fixed; bottom: calc(var(--tabbar-h) + var(--safe-b) + 14px); inset-inline: 20px; margin: 0 auto; max-width: 440px; z-index: 40; background: var(--ink); color: var(--bg); padding: 13px 18px; border-radius: 8px; font-weight: 500; text-align: center; box-shadow: var(--float); animation: up .25s var(--ease); }
 .no-tabs ~ .toast { bottom: calc(var(--safe-b) + 16px); }
@@ -422,3 +425,14 @@ ul.tips li { margin-bottom: 8px; }
 .wx-line + #tasks > .group, .wx-line + #tasks > .all-done { border-top: 0; margin-top: -26px; }
 .tabs + #tabc > .status-card:first-child, #tabc > .status-card { border-top: 0; }
 .group + .menu-list { border-top: 0; margin-top: -18px !important; }
+
+/* שיפורים */
+.tgroup .thumb, .tgroup .pname { text-decoration: none; }
+.task .done-btn { min-height: 44px; min-width: 84px; }
+.task .done-btn.ok, .task .done-btn.ok:disabled { background: var(--green); color: var(--on-accent); opacity: 1; }
+.app.enter { animation: screen-in .2s var(--ease); }
+@keyframes screen-in { from { opacity: 0; } }
+.empty ~ .push-card { flex-direction: column; text-align: center; border-top: 1px solid var(--line); gap: 10px; }
+.empty ~ .push-card .x { position: absolute; inset-inline-end: 0; top: 10px; }
+.push-card { position: relative; }
+.actions button.ok { background: var(--green-soft); color: var(--green); }

@@ -56,7 +56,10 @@ async function render() {
   $$("a", tabbar).forEach(a => a.toggleAttribute("aria-current", a.dataset.tab === name || (name === "plant" && a.dataset.tab === "plants")));
   if (a11yCurrent(tabbar, name)) {}
   window.scrollTo(0, 0);
-  try { await fn(...args); }
+  try {
+    await fn(...args);
+    app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");   // מעבר רך בין מסכים
+  }
   catch (e) { console.error(e); app.innerHTML = `${head("אופס")}<div class="card"><p>משהו השתבש: ${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div>`; }
 }
 function a11yCurrent(tabbar, name) { $$("a", tabbar).forEach(a => { if (a.hasAttribute("aria-current")) a.setAttribute("aria-current", "page"); }); return false; }
@@ -225,6 +228,12 @@ function dropTaskRow(row) {
 async function completeTask(row) {
   const p = findPlant(row.dataset.plant);
   const kind = row.dataset.kind;
+  // משוב מיידי: הכפתור הופך ל"בוצע", רטט קצר (אנדרואיד), ורק אז השורה יוצאת
+  const btn = row.querySelector("[data-done]");
+  const label = btn.textContent;
+  btn.disabled = true; btn.classList.add("ok"); btn.textContent = "✓ בוצע";
+  navigator.vibrate?.(12);
+  await new Promise(r => setTimeout(r, 420));
   row.classList.add("done");
   if (!KIND[kind]?.field) {
     // התראת מזג אוויר — "טיפלתי" = דחייה להיום
@@ -248,7 +257,7 @@ async function completeTask(row) {
         render();
       },
     });
-  } catch (e) { row.classList.remove("done"); toast("לא נשמר: " + e.message); }
+  } catch (e) { row.classList.remove("done"); btn.disabled = false; btn.classList.remove("ok"); btn.textContent = label; toast("לא נשמר: " + e.message); }
 }
 
 // ---------- הצמחים שלי ----------
@@ -383,7 +392,7 @@ async function screenPlant(id, tab = "status") {
     }
   };
   $$(".tabs button").forEach(b => (b.onclick = () => showTab(b.dataset.tab)));
-  $$("[data-log]").forEach(b => (b.onclick = () => quickLog(p, b.dataset.log)));
+  $$("[data-log]").forEach(b => (b.onclick = () => { navigator.vibrate?.(12); b.classList.add("ok"); b.disabled = true; quickLog(p, b.dataset.log); }));
   $("[data-more]").onclick = () => moreActions(p);
   showTab(tab);
 }
