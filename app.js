@@ -12,12 +12,13 @@ const S = { profile: null, plants: [], wx: null, urls: {}, ready: false, add: nu
 const plantName = p => p.nickname || p.species_name || "צמח";
 const sp = p => data.speciesLite(p.species_id);
 const findPlant = id => S.plants.find(p => p.id === id);
-const imgOf = p => (p.photo_path && S.urls[p.photo_path] ? `<img src="${esc(S.urls[p.photo_path])}" alt="" loading="lazy" class="ph-img">` : fallbackImg());
+const imgOf = p => (p.photo_path && S.urls[p.photo_path] ? `<img src="${esc(S.urls[p.photo_path])}" alt="" loading="lazy" class="ph-img">` : fallbackImg(plantName(p)));
 const kindIcon = k => ({ water: "water", fertilize: "fertilize", mist: "mist", rotate: "rotate", repot: "repot", shade: "shade", inside: "inside", wind: "wind", rain: "rain", photo: "image", note: "edit", prune: "scissors", diagnose: "stethoscope", move: "home" }[k] ?? "sprout");
 const head = (title, { back, sub, right = "" } = {}) => `
   <header class="screen-head">
-    ${back ? `<a class="icon-btn ghost" href="${back}" aria-label="חזרה">${icon("back")}</a>` : ""}
-    <h1>${esc(title)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</h1>${right}
+    <span class="sh-side">${back ? `<a class="back" href="${back}">${icon("back")} חזרה</a>` : ""}</span>
+    <h1>${esc(title)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</h1>
+    <span class="sh-side end">${right}</span>
   </header>`;
 const loading = (text = "רגע...") => `<div class="loader"><div class="spin"></div><div>${esc(text)}</div></div>`;
 
@@ -94,7 +95,7 @@ function weatherCard() {
   const w = S.wx;
   if (!w?.today) {
     return S.profile?.lat == null
-      ? `<a class="wx-line" href="#settings">${icon("pin")}<span class="desc"><b>איפה את גרה?</b>עם המיקום, ההשקיה מתאימה את עצמה לחום ולגשם</span>${icon("chevron")}</a>`
+      ? `<a class="wx-line" href="#settings"><span class="desc"><b>איפה את גרה?</b>עם המיקום, ההשקיה מתאימה את עצמה לחום ולגשם</span></a>`
       : "";
   }
   let note = "מזג אוויר רגיל, הכל לפי התוכנית";
@@ -103,17 +104,17 @@ function weatherCard() {
   else if (w.rainRecentMm >= 6) note = "ירד גשם, וצמחי מרפסת חשופים קיבלו מים";
   else if (w.tmaxRecent <= 16) note = "קריר. הצמחים שותים פחות, המרווחים ארוכים יותר";
   const ic = w.today.rain > 1 ? "rain" : "sun";
-  return `<div class="wx-line ${w.sharav || w.tmaxRecent >= 31 ? "hot" : ""}">${icon(ic)}<span class="temp">${Math.round(w.today.tmax)}°</span>
-    <span class="desc"><b>${esc(S.profile.city || "")} <span class="num muted" style="font-weight:400">${Math.round(w.today.tmin)}°–${Math.round(w.today.tmax)}°</span></b>${esc(note)}</span></div>`;
+  return `<div class="wx-line ${w.sharav || w.tmaxRecent >= 31 ? "hot" : ""}"><span class="temp">${Math.round(w.today.tmax)}°</span>
+    <span class="desc"><b>${esc(S.profile.city || "")}${ic === "rain" ? ", גשם" : ""} · <span class="num">${Math.round(w.today.tmin)}°–${Math.round(w.today.tmax)}°</span></b>${esc(note)}</span></div>`;
 }
 function pushPrompt() {
   if (localStorage.getItem("atzitz-push-dismissed")) return "";
   if (!cloud.pushSupported()) {
-    if (isIOS() && !isStandalone()) return `<div class="card push-card" id="pushCard">${icon("share")}<div class="body"><b>כדי לקבל תזכורות לנייד</b>ב-Safari: כפתור השיתוף ← "הוספה למסך הבית", ואז לפתוח את עציץ משם.</div><button class="x" id="pushLater" aria-label="סגירה">${icon("x")}</button></div>`;
+    if (isIOS() && !isStandalone()) return `<div class="push-card" id="pushCard">${icon("share")}<div class="body"><b>כדי לקבל תזכורות לנייד</b>ב-Safari: כפתור השיתוף ← "הוספה למסך הבית", ואז לפתוח את עציץ משם.</div><button class="x" id="pushLater" aria-label="סגירה">${icon("x")}</button></div>`;
     return "";
   }
   if (Notification.permission === "granted") return "";
-  return `<div class="card push-card" id="pushCard">${icon("bell")}<div class="body"><b>תזכורת כשצריך להשקות?</b>הודעה אחת ביום, רק כשיש מה לעשות.</div>
+  return `<div class="push-card" id="pushCard">${icon("bell")}<div class="body"><b>תזכורת כשצריך להשקות?</b>הודעה אחת ביום, רק כשיש מה לעשות.</div>
     <button class="btn small" id="pushOn">להפעיל</button><button class="x" id="pushLater" aria-label="לא עכשיו">${icon("x")}</button></div>`;
 }
 function bindPushPrompt() {
@@ -143,7 +144,7 @@ function taskLine(p, t) {
   const label = KIND[t.kind]?.done || "טיפלתי";
   return `<div class="task k-${t.kind} ${t.alert ? "alert" : ""}" data-plant="${p.id}" data-kind="${t.kind}">
     <span class="body">${icon(kindIcon(t.kind))}<span>${esc(text)}${late}</span></span>
-    <button class="done-btn" data-done>${icon("check")}${esc(label)}</button></div>`;
+    <button class="done-btn" data-done>${esc(label)}</button></div>`;
 }
 function taskGroup({ p, ts }) {
   return `<div class="tgroup ${ts.some(t => t.alert) ? "has-alert" : ""}">
@@ -186,7 +187,7 @@ async function screenToday() {
   const hello = sub => `<div class="hello"><div class="eyebrow">${esc(todayLabel())}</div><h1>${greeting()}${esc(name)}</h1>${sub ? `<p>${esc(sub)}</p>` : ""}</div>`;
   if (!S.plants.length) {
     app.innerHTML = `${hello("")}
-      <div class="empty"><div class="art">${icon("sprout")}</div><h2>נתחיל מהצמח הראשון</h2>
+      <div class="empty"><h2>נתחיל מהצמח הראשון</h2>
       <p>מצלמים אותו, ואני אגיד מה הוא, איפה הוא אוהב לעמוד וכמה להשקות. ואזכיר מתי.</p>
       <a class="btn terra" href="#add" style="margin-top:8px">${icon("camera")} לצלם צמח</a>
       <p style="margin-top:16px"><a href="#library">או לחפש בספרייה לפי שם</a></p></div>${pushPrompt()}`;
@@ -202,7 +203,7 @@ async function screenToday() {
     ${hello(sub)}
     ${weatherCard()}
     <div id="tasks">${groups.length ? `<div class="group">${groups.map(taskGroup).join("")}</div>` :
-      `<div class="card all-done">${icon("check")}<div><b>הכל בסדר היום</b><div class="small muted">אפשר פשוט ליהנות מהם.</div></div></div>`}</div>
+      `<div class="all-done"><b>הכל בסדר היום</b><div class="small muted">אפשר פשוט ליהנות מהם.</div></div>`}</div>
     ${pushPrompt()}
     <div class="section-title"><h2>השבוע</h2><span class="legend"><i></i>השקיה<i class="f"></i>דישון</span></div>
     ${weekStrip()}
@@ -217,7 +218,7 @@ function dropTaskRow(row) {
     row.remove();
     if (g && !g.querySelector(".task")) g.remove();
     const list = $("#tasks .group");
-    if (list && !list.children.length) $("#tasks").innerHTML = `<div class="card all-done">${icon("check")}<div><b>סיימת להיום</b><div class="small muted">הצמחים מודים לך.</div></div></div>`;
+    if (list && !list.children.length) $("#tasks").innerHTML = `<div class="all-done"><b>סיימת להיום</b><div class="small muted">הצמחים מודים לך.</div></div>`;
   }, 300);
 }
 
@@ -264,11 +265,11 @@ async function screenPlants() {
   // ממוינים לפי מקום, ובתוך כל מקום — מי שצריך מים קודם
   const due = p => plantTasks(sp(p), p, S.wx).find(x => x.kind === "water")?.dueIn ?? 99;
   const list = [...S.plants].sort((a, b) => where(a).localeCompare(where(b), "he") || due(a) - due(b));
-  app.innerHTML = `${head("הצמחים שלי", { sub: S.plants.length ? `${S.plants.length} צמחים` : "", right: `<a class="icon-btn" href="#library" aria-label="ספריית צמחים">${icon("book")}</a>` })}
+  app.innerHTML = `${head("הצמחים שלי", { sub: S.plants.length ? `${S.plants.length} צמחים` : "", right: `<a class="back" href="#library">ספרייה</a>` })}
     ${S.plants.length ? `<div class="grid">${list.map(p => `
         <a class="pcard" href="#plant/${p.id}"><div class="ph">${imgOf(p)}</div>
           <div class="info"><b>${esc(plantName(p))}</b><span>${p.nickname ? esc(p.species_name) + " · " : ""}${esc(where(p))}</span>${waterBar(p)}</div></a>`).join("")}</div>`
-      : `<div class="empty"><div class="art">${icon("plants")}</div><h2>עוד אין צמחים</h2><p>מצלמים את הראשון, זה לוקח חצי דקה.</p><a class="btn terra" href="#add">${icon("camera")} לצלם צמח</a></div>`}
+      : `<div class="empty"><h2>עוד אין צמחים</h2><p>מצלמים את הראשון, זה לוקח חצי דקה.</p><a class="btn terra" href="#add">${icon("camera")} לצלם צמח</a></div>`}
     ${S.plants.length ? `<a class="btn outline block" href="#add" style="margin-top:28px">${icon("plus")} הוספת צמח</a>` : ""}`;
 }
 
@@ -317,13 +318,13 @@ async function screenPlant(id, tab = "status") {
     : f > 1.05 ? `קריר, אז המרווח ארוך יותר: ${w?.interval} ימים` : `${isSummer() ? "בקיץ" : "בחורף"}: כל ${w?.interval} ימים בערך`;
   const L = data.LIGHT[s?.light?.level]?.short;
   app.innerHTML = `
-    <div class="hero">${p.photo_path && S.urls[p.photo_path] ? `<img src="${esc(S.urls[p.photo_path])}" alt="">` : fallbackImg()}
-      <div class="top"><a class="icon-btn" href="#plants" aria-label="חזרה">${icon("back")}</a><a class="icon-btn" href="#edit/${p.id}" aria-label="עריכה">${icon("edit")}</a></div></div>
+    <div class="hero">${p.photo_path && S.urls[p.photo_path] ? `<img src="${esc(S.urls[p.photo_path])}" alt="">` : fallbackImg(plantName(p))}
+      <div class="top"><a class="hero-btn" href="#plants">${icon("back")} חזרה</a><a class="hero-btn" href="#edit/${p.id}">עריכה</a></div></div>
     <div class="plant-head">
       <h1>${esc(plantName(p))}</h1>
       <div class="muted">${esc(p.nickname ? p.species_name : "")} <span class="sci">${esc(s?.scientific || "")}</span></div>
       <div class="meta">
-        <span class="chip">${icon(p.location === "balcony" ? "sun" : "home")}${esc(p.location === "balcony" ? "מרפסת" : p.room || "בבית")}</span>
+        <span class="chip">${esc(p.location === "balcony" ? "מרפסת" : p.room || "בבית")}</span>
         ${L ? `<span class="chip sun">${icon("sun")}${esc(L)}</span>` : ""}
         ${s?.difficulty ? `<span class="chip green">${esc(data.DIFFICULTY[s.difficulty])}</span>` : ""}
         ${s?.toxicity?.pets ? `<span class="chip danger">${icon("paw")}רעיל לחיות</span>` : ""}
@@ -331,7 +332,7 @@ async function screenPlant(id, tab = "status") {
     </div>
     <div class="actions">
       ${["water", "fertilize", "mist"].map(k => `<button data-log="${k}">${icon(kindIcon(k))}${KIND[k].done}</button>`).join("")}
-      <button data-more>${icon("plus")}עוד</button>
+      <button data-more>עוד</button>
     </div>
     <div class="tabs" role="tablist">
       ${[["status", "מצב"], ["guide", "מדריך טיפול"], ["log", "יומן"], ["photos", "תמונות"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
@@ -346,16 +347,14 @@ async function screenPlant(id, tab = "status") {
       const upcoming = tasks.filter(t => !t.alert && t.kind !== "water" && t.kind !== "rain").sort((a, b) => a.dueIn - b.dueIn);
       const alerts = tasks.filter(t => t.alert);
       tabc.innerHTML = `
-        ${alerts.map(t => `<div class="note" style="display:flex;gap:10px;margin-bottom:14px">${icon(kindIcon(t.kind))}<div><b>${esc(KIND[t.kind].label)}.</b> ${esc(t.text)}</div></div>`).join("")}
+        ${alerts.map(t => `<div class="note" style="margin-bottom:14px"><div><b>${esc(KIND[t.kind].label)}.</b> ${esc(t.text)}</div></div>`).join("")}
         <div class="card status-card ${w && w.dueIn <= 0 ? "late" : ""}">
-          <span class="task-kind water">${icon(rain ? "rain" : "water")}</span>
           <div style="flex:1">${rain ? `<b>${esc(rain.text)}</b>` : `<div class="big">${esc(waterStatus(w))}</div>
             <div class="small" style="margin-top:8px;color:var(--ink-2)">${esc(w.text)}. ${esc(why)}.</div>
             ${p.last_watered ? `<div class="tiny muted" style="margin-top:4px">השקיה אחרונה ${esc(ago(p.last_watered))}</div>` : ""}`}</div>
         </div>
         ${s?.water?.check ? `<div class="note" style="margin-bottom:14px"><b>לפני שמשקים:</b> ${esc(s.water.check)}</div>` : ""}
-        ${upcoming.length ? `<div class="section-title" style="margin-top:24px"><h2>בהמשך</h2></div><div class="group" style="padding:0 14px">${upcoming.map(t => `<div class="list-row"><span class="task-kind ${t.kind}" style="width:36px;height:36px">${icon(kindIcon(t.kind))}</span>
-          <div class="body"><b>${esc(KIND[t.kind].label)}</b></div><span class="small muted">${esc(t.dueIn <= 0 ? "היום" : t.dueIn === 1 ? "מחר" : `בעוד ${t.dueIn} ימים`)}</span></div>`).join("")}</div>` : ""}
+        ${upcoming.length ? `<div class="section-title" style="margin-top:24px"><h2>בהמשך</h2></div><div class="group">${upcoming.map(t => `<div class="list-row"><div class="body"><b>${esc(KIND[t.kind].label)}</b></div><span class="small muted">${esc(t.dueIn <= 0 ? "היום" : t.dueIn === 1 ? "מחר" : `בעוד ${t.dueIn} ימים`)}</span></div>`).join("")}</div>` : ""}
         <div class="menu-list" style="margin-top:14px">
           <a class="menu-item" href="#diagnose/${p.id}"><span class="ic" style="color:var(--terra)">${icon("stethoscope")}</span><span class="body"><b>משהו לא נראה טוב?</b><span>אבחון לפי סימנים או לפי תמונה</span></span>${icon("chevron")}</a>
           <a class="menu-item" href="#ask/${p.id}"><span class="ic" style="color:var(--water)">${icon("chat")}</span><span class="body"><b>לשאול על ${esc(plantName(p))}</b><span>תשובה שמכירה את הצמח ואת המצב שלו</span></span>${icon("chevron")}</a>
@@ -539,7 +538,7 @@ async function addSearch() {
   await data.index();
   app.innerHTML = `${head("חיפוש צמח", { back: "#add" })}
     <div class="search">${icon("search")}<input class="input" id="q" placeholder="מונסטרה, פוטוס, בזיליקום..." autocomplete="off"></div>
-    <div id="res" class="card flat" style="padding:4px 14px"></div>
+    <div id="res" class="group"></div>
     <p class="small muted" style="margin-top:4px">לא ברשימה? <button class="link-btn" id="aiq">לבקש מדריך לצמח הזה</button></p>`;
   const draw = () => {
     const list = data.search($("#q").value).slice(0, 40);
@@ -593,8 +592,8 @@ async function addSetup() {
       <label class="field" id="covF" hidden><span style="display:flex;justify-content:space-between;align-items:center">מרפסת מקורה (הגשם לא מגיע)<input type="checkbox" class="switch" name="covered"></span></label>
       <div class="field"><span>גודל העציץ <small>(קוטר הפתח)</small></span>${choiceHTML("pot", POTS, st.pot)}</div>
       <div class="field"><span>מתי השקית לאחרונה?</span>${choiceHTML("last", [["today", "היום"], ["3", "לפני כמה ימים"], ["7", "לפני שבוע+"], ["unknown", "לא זוכרת"]], st.last)}</div>
-      ${s?.light?.level ? `<p class="small muted">${icon("sun")} הוא אוהב ${esc(data.LIGHT[s.light.level]?.label ?? "")}.</p>` : ""}
-      <button class="btn block terra" type="submit">${icon("check")} להוסיף לצמחים שלי</button>
+      ${s?.light?.level ? `<p class="small muted">הוא אוהב ${esc(data.LIGHT[s.light.level]?.label ?? "")}.</p>` : ""}
+      <button class="btn block terra" type="submit">להוסיף לצמחים שלי</button>
     </form>`;
   bindChoices(app, st);
   const sync = () => { const out = st.location === "balcony"; $("#spotF").hidden = out; $("#roomF").hidden = out; $("#covF").hidden = !out; };
@@ -685,18 +684,18 @@ async function screenLibrary() {
   await data.index();
   app.innerHTML = `${head("ספריית צמחים", { back: "#plants", sub: "מדריך מלא לכל צמח, גם לפני שקונים" })}
     <div class="search">${icon("search")}<input class="input" id="q" placeholder="חיפוש..." autocomplete="off"></div>
-    <div class="chips" id="cats" style="margin-bottom:14px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px">
-      <button class="chip green" data-c="">הכל</button>${Object.entries(data.CATEGORY).map(([k, v]) => `<button class="chip" data-c="${k}">${v}</button>`).join("")}</div>
+    <div class="tabs" id="cats" role="tablist" style="margin-top:0">
+      <button data-c="" aria-selected="true">הכל</button>${Object.entries(data.CATEGORY).map(([k, v]) => `<button data-c="${k}" aria-selected="false">${v}</button>`).join("")}</div>
     <div id="res"></div>`;
   let cat = "";
   const draw = () => {
     const list = data.search($("#q").value).filter(p => !cat || p.category === cat);
-    $("#res").innerHTML = `<div class="card flat" style="padding:4px 14px">${list.map(p => `<a class="list-row" href="#species/${encodeURIComponent(p.id)}">
+    $("#res").innerHTML = `<div class="group">${list.map(p => `<a class="list-row" href="#species/${encodeURIComponent(p.id)}">
       <span class="body"><b>${esc(p.he)}</b><span>${esc(data.CATEGORY[p.category] ?? "")} · ${esc(data.DIFFICULTY[p.difficulty] ?? "")}</span></span>
-      ${p.toxicity?.pets ? `<span class="chip danger" title="רעיל לחיות">${icon("paw")}</span>` : ""}${icon("chevron")}</a>`).join("") || `<p class="muted">לא נמצא.</p>`}</div>`;
+      ${p.toxicity?.pets ? `<span class="small" style="color:var(--danger)">רעיל לחיות</span>` : ""}${icon("chevron")}</a>`).join("") || `<p class="muted">לא נמצא.</p>`}</div>`;
   };
   $("#q").oninput = draw;
-  $$("#cats button").forEach(b => (b.onclick = () => { cat = b.dataset.c; $$("#cats button").forEach(x => x.classList.toggle("green", x === b)); draw(); }));
+  $$("#cats button").forEach(b => (b.onclick = () => { cat = b.dataset.c; $$("#cats button").forEach(x => x.setAttribute("aria-selected", x === b)); draw(); }));
   draw();
 }
 async function screenSpecies(id) {
@@ -718,14 +717,14 @@ async function screenLearn() {
   const levels = { 1: "יסודות", 2: "מתקדמות", 3: "למקצועניות" };
   const next = lessons.find(l => !doneSet.has(l.id)) ?? lessons[0];
   const ni = lessons.indexOf(next);
-  const tools = [["#diagnose", "stethoscope", "אבחון בעיה", "var(--terra)"], ["#ask", "chat", "לשאול שאלה", "var(--water)"], ["#library", "book", "ספריית צמחים", "var(--green-2)"], ["#tips", "sprout", "טיפים", "var(--sun)"]];
+  const tools = [["#diagnose", "stethoscope", "אבחון", "var(--terra)"], ["#ask", "chat", "שאלה", "var(--water)"], ["#library", "book", "ספרייה", "var(--green-2)"], ["#tips", "sprout", "טיפים", "var(--sun)"]];
   app.innerHTML = `${head("לומדים לגדל")}
     ${next ? `<a class="continue" href="#lesson/${encodeURIComponent(next.id)}">
       <div class="eyebrow"><span>${doneSet.size ? "ממשיכים" : "מתחילים"} · שיעור ${ni + 1}</span><span class="num">${doneSet.size}/${lessons.length}</span></div>
       <h2>${esc(next.title)}</h2>
       <div class="bar"><i style="width:${Math.round(pct * 100)}%"></i></div>
       <span class="btn small">${pct >= 1 ? "לקרוא שוב" : "לקריאה"} · ${next.minutes ?? 2} דק׳</span></a>` : ""}
-    <div class="tools">${tools.map(([h, ic, l, c]) => `<a href="${h}"><span style="color:${c};display:grid">${icon(ic)}</span>${l}</a>`).join("")}</div>
+    <nav class="tools">${tools.map(([h, , l]) => `<a href="${h}">${l}</a>`).join("")}</nav>
     ${[1, 2, 3].map(lv => {
       const ls = lessons.filter(l => (l.level ?? 1) === lv);
       if (!ls.length) return "";
@@ -733,7 +732,7 @@ async function screenLearn() {
       const open = ls.includes(next) || (lv === 1 && !next);
       return `<details class="level"${open ? " open" : ""}><summary><h2>${icon("chevron")}${levels[lv]}</h2><span class="aside">${d}/${ls.length}</span></summary>
         <div class="group">${ls.map(l => `<a class="lesson-row ${doneSet.has(l.id) ? "done" : ""}" href="#lesson/${encodeURIComponent(l.id)}">
-        <span class="n">${doneSet.has(l.id) ? icon("check") : lessons.indexOf(l) + 1}</span><span class="body"><b>${esc(l.title)}</b><span>${l.minutes ?? 2} דק׳ קריאה</span></span>${icon("chevron")}</a>`).join("")}</div></details>`;
+        <span class="n">${doneSet.has(l.id) ? "✓" : lessons.indexOf(l) + 1}</span><span class="body"><b>${esc(l.title)}</b><span>${l.minutes ?? 2} דק׳ קריאה</span></span>${icon("chevron")}</a>`).join("")}</div></details>`;
     }).join("")}`;
 }
 async function screenLesson(id) {
@@ -857,7 +856,7 @@ async function screenAsk(plantId) {
   };
   app.innerHTML = `${head(p ? plantName(p) : "שאלה על צמחים", { back: p ? `#plant/${p.id}` : "#learn", sub: p ? "שאלות על הצמח הזה" : "שאלות על צמחים" })}
     <div class="chat" id="chat"></div>
-    <form class="composer" id="cf"><button type="button" class="icon-btn" id="att" aria-label="צירוף תמונה">${icon("camera")}</button><input class="input" name="q" placeholder="כתבי שאלה..." autocomplete="off" required><button class="btn" type="submit" style="min-height:50px">שליחה</button></form>`;
+    <form class="composer" id="cf"><button type="button" class="btn outline" id="att" style="padding:0 14px">תמונה</button><input class="input" name="q" placeholder="כתבי שאלה..." autocomplete="off" required><button class="btn" type="submit" style="min-height:50px">שליחה</button></form>`;
   draw();
   let photo = null;
   $("#att").onclick = async () => { const f = await pickImage("gallery"); if (f) { photo = await shrink(f, 1024); $("#att").style.background = "var(--green-soft)"; toast("התמונה תצורף לשאלה"); } };
@@ -888,7 +887,7 @@ async function screenSettings() {
     <div class="card">
       <label class="field"><span>איך לקרוא לך?</span><input id="nm" value="${esc(pr.name ?? "")}" placeholder="השם שלך"></label>
       <div class="field"><span>איפה את גרה? <small>(בשביל מזג האוויר)</small></span>
-        <div style="display:flex;gap:8px"><input class="input" id="city" value="${esc(pr.city ?? "")}" placeholder="עיר"><button class="icon-btn" id="gps" aria-label="המיקום שלי">${icon("pin")}</button></div>
+        <div style="display:flex;gap:8px"><input class="input" id="city" value="${esc(pr.city ?? "")}" placeholder="עיר"><button class="btn outline" id="gps" style="padding:0 14px;white-space:nowrap">המיקום שלי</button></div>
         <div id="cityRes"></div></div>
     </div>
     <div class="card">
