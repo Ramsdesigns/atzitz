@@ -478,7 +478,7 @@ async function screenAdd(step) {
 }
 
 // שם עברי מהמאגר רק כשזה באמת אותו צמח: התאמה מדויקת, או רשומת-סוג (למשל "אכבריה")
-const sameHe = (x, lite) => (lite && (x.match?.exact || lite.scientific.trim().split(/s+/).length === 1) ? lite.he : "");
+const sameHe = (x, lite) => (lite && (x.match?.exact || lite.scientific.trim().split(/\s+/).length === 1) ? lite.he : "");
 function candidates() {
   const r = S.add.result ?? {};
   const out = [];
@@ -488,7 +488,7 @@ function candidates() {
     const key = (x.match?.exact ? lite.id : x.scientific).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ scientific: x.scientific, he: sameHe(x, lite) || x.common?.[0] || "", score: x.score, images: x.images, match: x.match, lite, src: "PlantNet" });
+    out.push({ scientific: x.scientific, he: sameHe(x, lite), score: x.score, images: x.images, match: x.match, lite, src: "PlantNet" });
   }
   for (const x of r.gemini ?? []) {
     const lite = x.match ? data.speciesLite(x.match.id) : null;
