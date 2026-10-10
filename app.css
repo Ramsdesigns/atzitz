@@ -225,9 +225,15 @@ button.pill[aria-selected="true"] { background: var(--green); color: var(--on-ac
 .avatars .av:first-child { margin-inline-start: 0; }
 .avatars.sm .av { width: 26px; height: 26px; border-width: 2px; margin-inline-start: -7px; }
 .avatars.sm { justify-content: flex-start; }
+.avatars .av.more { display: grid; place-items: center; font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.avatars a.av { display: block; transition: transform .15s var(--ease); }
+.avatars a.av:active { transform: scale(.92); }
 
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 10px 8px; }
 .week .d { text-align: center; padding: 6px 0 8px; font-size: 12px; color: var(--ink-3); border-radius: 12px; }
+.week button.d { border: 0; background: none; font-family: inherit; cursor: pointer; min-height: 62px; transition: background .15s, transform .15s var(--ease); }
+.week button.d:active { transform: scale(.94); background: var(--bg-2); }
+.week button.d.today:active { background: var(--green); }
 .week .d b { display: block; font-size: 16px; font-weight: 600; color: var(--ink); margin: 2px 0 5px; font-variant-numeric: tabular-nums; }
 .week .d .dots { display: flex; justify-content: center; gap: 3px; min-height: 6px; }
 .week .d .dots i, .legend i { width: 6px; height: 6px; border-radius: 50%; background: var(--water); display: inline-block; }
@@ -238,6 +244,8 @@ button.pill[aria-selected="true"] { background: var(--green); color: var(--on-ac
 .legend { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-3); }
 .legend i:not(:first-child) { margin-inline-start: 8px; }
 
+a.tip { text-decoration: none; color: inherit; }
+a.tip:active { opacity: .85; }
 .tip { display: flex; gap: 12px; align-items: flex-start; background: var(--green-soft); border-radius: var(--radius); padding: 16px; }
 .tip p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink); }
 .tip .lbl { font-size: 12.5px; font-weight: 600; color: var(--green); margin-bottom: 3px; }

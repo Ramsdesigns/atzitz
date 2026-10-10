@@ -39,7 +39,10 @@ const head = (title, { back, sub, right = "" } = {}) => `
   </header>`;
 const loading = (text = "רגע...") => `<div class="loader"><div class="spin"></div><div>${esc(text)}</div></div>`;
 const days = n => (n === 1 ? "יום" : n === 2 ? "יומיים" : `${n} ימים`);
-const avatars = (plants, cls = "") => `<span class="avatars ${cls}">${plants.slice(0, 5).map(p => `<span class="av">${imgOf(p)}</span>`).join("")}</span>`;
+// link: כל עיגול מוביל לעמוד הצמח (לא להשתמש בתוך קישור אחר). מעבר ל-5 מוצג "+N".
+const avatars = (plants, cls = "", link = false) => `<span class="avatars ${cls}">${plants.slice(0, 5).map(p => link
+  ? `<a class="av" href="#plant/${p.id}" aria-label="${esc(plantName(p))}">${imgOf(p)}</a>` : `<span class="av">${imgOf(p)}</span>`).join("")}${
+  plants.length > 5 ? (link ? `<a class="av more" href="#plants" aria-label="כל הצמחים">+${plants.length - 5}</a>` : `<span class="av more">+${plants.length - 5}</span>`) : ""}</span>`;
 /** טבעת התקדמות (0–1) עם אייקון באמצע */
 function ring(pct, kind) {
   const C = 2 * Math.PI * 31, v = Math.max(0.05, Math.min(1, pct));
@@ -204,24 +207,49 @@ function taskSection([key, title, ic, hint], items) {
     ${hint ? `<p class="small muted" style="margin:-4px 4px 8px">${hint}</p>` : ""}
     <div class="rows">${list.map(x => taskRow(x.p, x.t)).join("")}</div></section>`;
 }
-const allDoneHTML = (title, sub) => `<div class="card all-done">${avatars(S.plants)}<b>${title}</b><div class="small muted">${sub}</div></div>`;
-function weekStrip() {
-  const ds = [...Array(7)].map((_, i) => new Date(Date.now() + i * DAY));
-  const counts = ds.map(() => ({ w: 0, f: 0 }));
+const allDoneHTML = (title, sub) => `<div class="card all-done">${avatars(S.plants, "", true)}<b>${title}</b><div class="small muted">${sub}</div></div>`;
+/** מה מתוכנן בכל אחד מ-7 הימים הקרובים: לכל יום רשימת {p, t}. השקיה חוזרת בתוך השבוע לפי המרווח שלה. */
+function weekDays() {
+  const plan = [...Array(7)].map(() => []);
   for (const p of S.plants) {
     for (const t of plantTasks(sp(p), p, S.wx)) {
       if (t.snoozed || t.alert) continue;
       const d = Math.max(0, t.dueIn);
-      if (t.kind === "water") {
-        // השקיות חוזרות בתוך השבוע
-        for (let x = d; x < 7; x += Math.max(1, t.interval)) counts[x].w++;
-      } else if (t.kind === "fertilize" && d < 7) counts[d].f++;
+      if (t.kind === "water") for (let x = d; x < 7; x += Math.max(1, t.interval)) plan[x].push({ p, t });
+      else if (t.kind === "fertilize" && d < 7) plan[d].push({ p, t });
     }
   }
+  return plan;
+}
+const weekDate = i => new Date(Date.now() + i * DAY);
+function weekStrip() {
+  const plan = weekDays();
+  const count = (i, kind) => plan[i].filter(x => x.t.kind === kind).length;
   const dn = new Intl.DateTimeFormat("he-IL", { weekday: "narrow", timeZone: "Asia/Jerusalem" });
   const dd = new Intl.DateTimeFormat("he-IL", { day: "numeric", timeZone: "Asia/Jerusalem" });
-  return `<div class="card week" style="padding:10px 8px">${ds.map((d, i) => `<div class="d ${i === 0 ? "today" : ""}">${esc(dn.format(d))}<b>${esc(dd.format(d))}</b>
-    <div class="dots">${"<i></i>".repeat(Math.min(counts[i].w, 4))}${'<i class="f"></i>'.repeat(Math.min(counts[i].f, 2))}</div></div>`).join("")}</div>`;
+  const full = new Intl.DateTimeFormat("he-IL", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem" });
+  return `<div class="card week" style="padding:10px 8px">${plan.map((_, i) => {
+    const d = weekDate(i), w = count(i, "water"), f = count(i, "fertilize");
+    const what = [w ? `${w} להשקיה` : "", f ? `${f} לדישון` : ""].filter(Boolean).join(", ") || "אין משימות";
+    return `<button type="button" class="d ${i === 0 ? "today" : ""}" data-day="${i}" aria-label="${esc(full.format(d))}: ${what}">${esc(dn.format(d))}<b>${esc(dd.format(d))}</b>
+    <span class="dots">${"<i></i>".repeat(Math.min(w, 4))}${'<i class="f"></i>'.repeat(Math.min(f, 2))}</span></button>`;
+  }).join("")}</div>`;
+}
+// לחיצה על יום ברצועת השבוע: מה מתוכנן בו, צמח אחרי צמח
+function openDay(i) {
+  const list = weekDays()[i];
+  const title = i === 0 ? "היום" : i === 1 ? "מחר" : new Intl.DateTimeFormat("he-IL", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem" }).format(weekDate(i));
+  const group = (kind, label, ic) => {
+    const rows = list.filter(x => x.t.kind === kind);
+    if (!rows.length) return "";
+    return `<div class="sec"><h2>${ib(ic, "sm")}${label}<span class="count num">${rows.length}</span></h2></div>
+      <div class="rows">${rows.map(({ p, t }) => `<a class="row" href="#plant/${p.id}"><span class="ph">${imgOf(p)}</span>
+        <span class="body"><b>${esc(plantName(p))}</b><span>${esc(whereOf(p))}</span></span>
+        ${kind === "water" ? `<span class="amount">${t.ml ? esc(formatMl(t.ml)) : sp(p)?.water?.mode === "soak" ? "טבילה" : "בגביע"}</span>` : ""}${icon("chevron", "chev")}</a>`).join("")}</div>`;
+  };
+  sheet(`<h2>${esc(title)}</h2>${list.length ? group("water", "השקיה", "water") + group("fertilize", "דישון", "fertilize")
+    : `<p class="muted" style="text-align:center;margin:6px 0 14px">${i === 0 ? "אין משימות היום." : "אין משימות ביום הזה."}</p>`}
+    ${i > 0 && list.length ? `<p class="small muted" style="text-align:center;margin-top:10px">התכנון מתעדכן לפי מזג האוויר ולפי מה שתסמני.</p>` : ""}`);
 }
 async function tipOfDay() {
   const { tips } = await data.learn();
@@ -260,8 +288,9 @@ async function screenToday() {
     ${pushPrompt()}
     <div class="sec"><h2>השבוע</h2><span class="legend"><i></i>השקיה<i class="f"></i>דישון</span></div>
     ${weekStrip()}
-    ${tip ? `<div class="sec"><h2>טיפ של היום</h2><a href="#tips">עוד טיפים</a></div><div class="tip">${ib("fertilize", "", "bulb")}<p>${esc(tip.text)}</p></div>` : ""}`;
+    ${tip ? `<div class="sec"><h2>טיפ של היום</h2><a href="#tips">עוד טיפים</a></div><a class="tip" href="#tips">${ib("fertilize", "", "bulb")}<p>${esc(tip.text)}</p></a>` : ""}`;
   bindPushPrompt();
+  $$(".week [data-day]").forEach(b => (b.onclick = () => openDay(Number(b.dataset.day))));
   $$(".task [data-done]").forEach(b => (b.onclick = () => completeTask(b.closest(".task"))));
   $$("[data-all]").forEach(b => (b.onclick = async () => {
     const rows = $$(`.task[data-sec="${b.dataset.all}"]`);
@@ -626,7 +655,7 @@ async function chooseCandidate(x, btn) {
     location.hash = "#add/setup";
     return;
   }
-  btn.innerHTML = loading("כותבת מדריך טיפול לצמח הזה...");
+  btn.innerHTML = loading("כותבת מדריך טיפול לצמח הזה. זה לוקח עד דקה.");
   try {
     const card = await cloud.ai("card", { scientific: x.scientific, hint: x.he });
     S.add.chosen = { species_id: card.id, species_name: card.he || x.he || x.scientific };
@@ -659,7 +688,7 @@ async function addSearch() {
   $("#aiq").onclick = async () => {
     const name = $("#q").value.trim();
     if (!name) { toast("כתבי קודם את שם הצמח (עדיף שם מדעי)"); return; }
-    $("#aiq").disabled = true; $("#aiq").textContent = "כותבת מדריך...";
+    $("#aiq").disabled = true; $("#aiq").textContent = "כותבת מדריך, עד דקה...";
     try {
       const card = await cloud.ai("card", { scientific: name });
       S.add.chosen = { species_id: card.id, species_name: card.he || name };

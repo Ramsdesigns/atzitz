@@ -1,5 +1,5 @@
 /* sw.js — מעטפת האפליקציה במטמון (פתיחה מהירה גם בלי רשת) + קבלת התראות push. */
-const VERSION = "20261010225258";
+const VERSION = "20261010230918";
 const SHELL = ["./","index.html","app.js","app.css","manifest.webmanifest","fonts/fonts.css","lib/care.js","lib/cloud.js","lib/config.js","lib/data.js","lib/ui.js","vendor/supabase.js","data/index.json","data/learn/lessons.json","data/learn/tips.json","data/learn/diagnosis.json","fonts/Rubik-400-hebrew.woff2","fonts/Rubik-400-latin.woff2","fonts/Rubik-500-hebrew.woff2","fonts/Rubik-500-latin.woff2","fonts/Rubik-600-hebrew.woff2","fonts/Rubik-600-latin.woff2","fonts/Rubik-700-hebrew.woff2","fonts/Rubik-700-latin.woff2","icons/192.png"];
 
 self.addEventListener("install", e => {
