@@ -1,6 +1,6 @@
 /* sw.js — מעטפת האפליקציה במטמון (פתיחה מהירה גם בלי רשת) + קבלת התראות push. */
-const VERSION = "20261007015623";
-const SHELL = ["./","index.html","app.js","app.css","manifest.webmanifest","fonts/fonts.css","lib/care.js","lib/cloud.js","lib/config.js","lib/data.js","lib/ui.js","vendor/supabase.js","data/index.json","data/learn/lessons.json","data/learn/tips.json","data/learn/diagnosis.json","fonts/FrankRuhlLibre-500-hebrew.woff2","fonts/FrankRuhlLibre-500-latin.woff2","fonts/FrankRuhlLibre-700-hebrew.woff2","fonts/FrankRuhlLibre-700-latin.woff2","fonts/Heebo-400-hebrew.woff2","fonts/Heebo-400-latin.woff2","fonts/Heebo-500-hebrew.woff2","fonts/Heebo-500-latin.woff2","fonts/Heebo-600-hebrew.woff2","fonts/Heebo-600-latin.woff2","fonts/Heebo-700-hebrew.woff2","fonts/Heebo-700-latin.woff2","icons/192.png"];
+const VERSION = "20261010220935";
+const SHELL = ["./","index.html","app.js","app.css","manifest.webmanifest","fonts/fonts.css","lib/care.js","lib/cloud.js","lib/config.js","lib/data.js","lib/ui.js","vendor/supabase.js","data/index.json","data/learn/lessons.json","data/learn/tips.json","data/learn/diagnosis.json","fonts/Rubik-400-hebrew.woff2","fonts/Rubik-400-latin.woff2","fonts/Rubik-500-hebrew.woff2","fonts/Rubik-500-latin.woff2","fonts/Rubik-600-hebrew.woff2","fonts/Rubik-600-latin.woff2","fonts/Rubik-700-hebrew.woff2","fonts/Rubik-700-latin.woff2","icons/192.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
