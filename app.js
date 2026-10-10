@@ -7,13 +7,13 @@ import { esc, icon, $, $$, paras, toast, sheet, confirmSheet, shrink, pickImage,
 const app = $("#app");
 const S = { profile: null, plants: [], wx: null, urls: {}, ready: false, add: null, chat: {} };
 
-// ---------- מראה: "חמים" (ברירת מחדל) או "בהיר" ----------
+// ---------- מראה: "חמים" (ברירת מחדל), "בהיר" או "לבן" ----------
+const LOOKS = { warm: ["חמים", "#f4eee2"], fresh: ["בהיר", "#f2f4ef"], white: ["לבן", "#ffffff"] };
 function applyLook(look) {
-  const fresh = look === "fresh";
-  if (fresh) document.documentElement.dataset.look = "fresh"; else delete document.documentElement.dataset.look;
-  document.querySelector('meta[name="theme-color"][media*="light"]')?.setAttribute("content", fresh ? "#f2f4ef" : "#f4eee2");
+  if (look && look !== "warm" && LOOKS[look]) document.documentElement.dataset.look = look; else delete document.documentElement.dataset.look;
+  document.querySelector('meta[name="theme-color"][media*="light"]')?.setAttribute("content", (LOOKS[look] ?? LOOKS.warm)[1]);
 }
-const currentLook = () => { try { return localStorage.getItem("atzitz-look") === "fresh" ? "fresh" : "warm"; } catch { return "warm"; } };
+const currentLook = () => { try { const l = localStorage.getItem("atzitz-look"); return LOOKS[l] ? l : "warm"; } catch { return "warm"; } };
 applyLook(currentLook());
 
 // ---------- עזרים ----------
@@ -1114,7 +1114,7 @@ async function screenSettings() {
     ${pushOn ? `<button class="btn outline small" id="testN">${icon("bell")} התראת בדיקה</button>` : ""}
     <div class="sec"><h2>מראה</h2></div>
     <div class="seg" id="look" style="margin-top:0">
-      <button data-look="warm" aria-selected="${look === "warm"}">חמים</button><button data-look="fresh" aria-selected="${look === "fresh"}">בהיר</button>
+      ${Object.entries(LOOKS).map(([k, [label]]) => `<button data-look="${k}" aria-selected="${look === k}">${label}</button>`).join("")}
     </div>
     <div class="sec"><h2>חשבון</h2></div>
     <div class="rows">

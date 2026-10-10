@@ -31,6 +31,7 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
   --ease: cubic-bezier(.22, 1, .36, 1);
+  --cta: var(--terra);   /* צבע הפעולה הראשית: צילום, הוספה, אבחון */
   color-scheme: light;
 }
 /* ערכת "בהיר": רקע אפרפר-ירקרק וכרטיסים לבנים. אותם צבעי מותג. */
@@ -38,8 +39,13 @@
   --bg: #f2f4ef; --bg-2: #e6ebe2; --card: #ffffff; --line: #dbe2d6; --line-2: #e8ede4; --on-accent: #ffffff;
   --lift: 0 1px 2px rgba(30, 40, 30, .05), 0 2px 8px rgba(30, 40, 30, .04);
 }
+/* ערכת "לבן": רקע לבן, כרטיסים באפור-ירקרק בהיר בלי צל, וכפתורי הפעולה הראשיים בירוק במקום טרקוטה. */
+:root[data-look="white"] {
+  --bg: #ffffff; --bg-2: #e7ece5; --card: #f3f6f1; --line: #dbe2d7; --line-2: #e5eae1; --on-accent: #ffffff;
+  --lift: none; --cta: var(--green);
+}
 @media (prefers-color-scheme: dark) {
-  :root, :root[data-look="fresh"] {
+  :root, :root[data-look="fresh"], :root[data-look="white"] {
     --bg: #141a16; --bg-2: #1b231d; --card: #1e2620; --ink: #e9ede3; --ink-2: #b9c3b7; --ink-3: #8b978c;
     --line: #2e3a31; --line-2: #263028; --green: #93c49f; --green-2: #a8d2b1; --green-soft: #243829; --terra: #e08a63; --terra-soft: #3d2519;
     --water: #82bbe0; --water-soft: #1c303d; --sun: #e3b24a; --sun-soft: #352c16; --danger: #ec8a7d; --danger-soft: #41221d;
@@ -128,7 +134,7 @@ a.row:active, button.row:active { background: var(--bg-2); }
 .btn.block { width: 100%; }
 .btn.secondary { background: var(--green-soft); color: var(--green); }
 .btn.outline { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
-.btn.terra { background: var(--terra); color: var(--on-accent); }
+.btn.terra { background: var(--cta); color: var(--on-accent); }
 .btn.water { background: var(--water); color: var(--on-accent); }
 .btn.small { min-height: 38px; padding: 0 16px; font-size: 14px; }
 .btn.small svg { width: 17px; height: 17px; }
@@ -471,7 +477,8 @@ ul.tips li { margin-bottom: 8px; }
 .tabbar a[aria-current="page"] { color: var(--green); font-weight: 600; }
 .tabbar a[aria-current="page"] .on { display: block; }
 .tabbar a[aria-current="page"] .off { display: none; }
-.tabbar .fab { flex: none; width: 62px; height: 62px; border-radius: 50%; background: var(--terra); color: var(--on-accent); justify-content: center; margin-top: -26px; border: 4px solid var(--bg); max-width: none; transition: transform .15s var(--ease); }
+.tabbar .fab { flex: none; width: 62px; height: 62px; border-radius: 50%; background: var(--cta); color: var(--on-accent); justify-content: center; margin-top: -26px; border: 4px solid var(--bg); max-width: none; transition: transform .15s var(--ease); }
+.tabbar .fab[aria-current="page"] { color: var(--on-accent); }   /* גם כשמסך הצילום פתוח, המצלמה נשארת בהירה על הכפתור */
 .tabbar .fab:active { transform: scale(.94); }
 .tabbar .fab svg { width: 28px; height: 28px; }
 
@@ -510,3 +517,11 @@ ul.tips li { margin-bottom: 8px; }
 @media (hover: hover) { .btn:hover { filter: brightness(1.06); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (min-width: 600px) { .grid, .lib { grid-template-columns: repeat(3, 1fr); } }
+
+/* ערכת "לבן": התאמות קטנות לרכיבים שנשענים על ההבדל בין רקע לכרטיס */
+:root[data-look="white"] .tabbar { background: color-mix(in srgb, #ffffff 94%, transparent); }
+:root[data-look="white"] .psheet { box-shadow: 0 -6px 20px rgba(20, 30, 20, .06); }
+@media (prefers-color-scheme: light) {
+  :root[data-look="white"] .seg button[aria-selected="true"] { background: #ffffff; }
+  :root[data-look="white"] .hbtn, :root[data-look="white"] .quick button:not([data-log="water"]):not(.ok) { box-shadow: inset 0 0 0 1px var(--line-2); }
+}
